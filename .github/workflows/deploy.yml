@@ -27,6 +27,6 @@ jobs:
       # Step 4: Deploy to Cloudflare Workers
       - name: Deploy to Cloudflare
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
         run: npm run deploy
