@@ -34,6 +34,7 @@ export default {
       try {
         const formData = await request.json();
         const { name, email, message } = formData;
+        const url = request.url;
   
         if (!name || !email || !message) {
           return new Response('Missing required fields', { status: 400 });
@@ -45,11 +46,26 @@ export default {
           to: EMAIL_TO,
           subject: `New Contact Form Submission from ${name}`,
           html: `
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Message:</strong></p>
-            <p>${message}</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">New Contact Form Submission</h2>
+              
+              <div style="margin: 20px 0;">
+                <p style="margin: 10px 0;"><strong>Name:</strong> ${name}</p>
+                <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
+                <p style="margin: 10px 0;"><strong>Submitted from:</strong></p>
+              </div>
+
+              <div style="margin: 20px 0;">
+                <p style="margin: 10px 0;"><strong>Message:</strong></p>
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+                  ${message.replace(/\n/g, '<br>')}
+                </div>
+              </div>
+              
+              <div style="font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                This message was sent from ${url}.
+              </div>
+            </div>
           `,
         };
   
