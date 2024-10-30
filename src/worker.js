@@ -56,7 +56,7 @@ export default {
         const emailResponse = await fetch(RESEND_API_ENDPOINT, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${ secrets.RESEND_API_KEY }`,
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(emailData),
