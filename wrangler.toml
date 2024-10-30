@@ -1,0 +1,13 @@
+name = "contact-form-worker-resend"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+RESEND_API_ENDPOINT = "https://api.resend.com/emails"
+ALLOWED_ORIGIN = "https://josematoswork.com"
+EMAIL_FROM = "Contact Form <noreply@josematoswork.com>"
+EMAIL_TO = "developer@josematoswork.com"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
