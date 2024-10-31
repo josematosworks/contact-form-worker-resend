@@ -36,37 +36,41 @@ export default {
         const { name, email, message } = formData;
         const url = request.url;
   
-        if (!name || !email || !message) {
+        if (!name?.trim() || !email?.trim() || !message?.trim()) {
           return new Response('Missing required fields', { status: 400 });
         }
 
-  
+        if (!isValidEmail(email)) {
+          return new Response('Invalid email format', { status: 400 });
+        }
+
+        const sanitizedName = sanitizeHtml(name);
+        const sanitizedMessage = sanitizeHtml(message);
+
+        const emailTemplate = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">New Contact Form Submission</h2>
+            
+            <div style="margin: 20px 0;">
+              <p style="margin: 10px 0;"><strong>Name:</strong> ${sanitizedName}</p>
+              <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="margin: 10px 0;"><strong>Submitted from:</strong> ${url}</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+              <p style="margin: 10px 0;"><strong>Message:</strong></p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+                ${sanitizedMessage.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          </div>
+        `;
+
         const emailData = {
           from: EMAIL_FROM,
           to: EMAIL_TO,
-          subject: `New Contact Form Submission from ${name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">New Contact Form Submission</h2>
-              
-              <div style="margin: 20px 0;">
-                <p style="margin: 10px 0;"><strong>Name:</strong> ${name}</p>
-                <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-                <p style="margin: 10px 0;"><strong>Submitted from:</strong></p>
-              </div>
-
-              <div style="margin: 20px 0;">
-                <p style="margin: 10px 0;"><strong>Message:</strong></p>
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
-                  ${message.replace(/\n/g, '<br>')}
-                </div>
-              </div>
-              
-              <div style="font-size: 12px; color: #666; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
-                This message was sent from ${url}.
-              </div>
-            </div>
-          `,
+          subject: `New Contact Form Submission from ${sanitizedName}`,
+          html: emailTemplate,
         };
   
         const emailResponse = await fetch(RESEND_API_ENDPOINT, {
@@ -80,8 +84,10 @@ export default {
   
         const emailResult = await emailResponse.json();
   
-        if (!emailResponse.ok || emailResult.error) {
-          throw new Error(emailResult.error?.message || 'Failed to send email');
+        if (!emailResponse.ok) {
+          const errorMessage = emailResult.error?.message || 'Failed to send email';
+          console.error('Email sending failed:', errorMessage);
+          throw new Error(errorMessage);
         }
   
         return new Response(JSON.stringify({
@@ -91,13 +97,17 @@ export default {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+            'Access-Control-Max-Age': '86400',
+            'X-RateLimit-Limit': '100',
+            'X-RateLimit-Remaining': '99',
           },
         });
   
       } catch (error) {
+        console.error('Form submission error:', error);
         return new Response(JSON.stringify({
           success: false,
-          message: error.message
+          message: 'An error occurred while processing your request'
         }), {
           status: 500,
           headers: {
@@ -108,3 +118,19 @@ export default {
       }
     },
   };
+
+// Add email validation helper
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Add HTML sanitization helper
+const sanitizeHtml = (str) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
