@@ -61,7 +61,7 @@ export default {
         
         const newRequestCount = dailyRequestCount + 1;
         
-        await KV_STORE.put(dailyRateLimitKey, newRequestCount.toString(), {
+        await KV_STORE?.put(dailyRateLimitKey, newRequestCount.toString(), {
           expirationTtl: ONE_DAY_IN_SECONDS
         });
 
