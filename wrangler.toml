@@ -7,7 +7,12 @@ RESEND_API_ENDPOINT = "https://api.resend.com/emails"
 ALLOWED_ORIGIN = "https://josematoswork.com"
 EMAIL_FROM = "Contact Form <noreply@josematoswork.com>"
 EMAIL_TO = "developer@josematoswork.com"
+LIMIT_PER_DAY = 5
 
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+kv_namespaces = [
+  { binding = "KV_STORE", id = "e7b2796cab684a898b4f54235645e74d", preview_id = "e7b2796cab684a898b4f54235645e74d" }
+]

@@ -21,8 +21,10 @@ export default {
           headers: {
             'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
             'Access-Control-Max-Age': '86400',
+            'Access-Control-Allow-Credentials': 'true',
+            'Vary': 'Origin',
           },
         });
       }
@@ -32,6 +34,32 @@ export default {
       }
   
       try {
+        const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP');
+        const rateLimitKey = `ratelimit:${clientIP}`;
+        
+        const rateLimit = await env.KV_STORE.get(rateLimitKey);
+        const currentCount = rateLimit ? parseInt(rateLimit) : 0;
+        
+        if (currentCount >= LIMIT_PER_DAY) {
+          return new Response(JSON.stringify({
+            success: false,
+            message: 'Rate limit exceeded. Please try again later.'
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+              'Access-Control-Allow-Credentials': 'true',
+              'Retry-After': '3600',
+              'Vary': 'Origin',
+            },
+          });
+        }
+        
+        await env.KV_STORE.put(rateLimitKey, (currentCount + 1).toString(), {
+          expirationTtl: 86400
+        });
+
         const formData = await request.json();
         const { name, email, message } = formData;
         const url = request.url;
@@ -71,6 +99,7 @@ export default {
           to: EMAIL_TO,
           subject: `New Contact Form Submission from ${sanitizedName}`,
           html: emailTemplate,
+          reply_to: email,
         };
   
         const emailResponse = await fetch(RESEND_API_ENDPOINT, {
@@ -97,9 +126,11 @@ export default {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-            'Access-Control-Max-Age': '86400',
-            'X-RateLimit-Limit': '100',
-            'X-RateLimit-Remaining': '99',
+            'Access-Control-Allow-Credentials': 'true',
+            'X-RateLimit-Limit': `${LIMIT_PER_DAY}`,
+            'X-RateLimit-Remaining': (LIMIT_PER_DAY - (currentCount + 1)).toString(),
+            'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + 86400,
+            'Vary': 'Origin',
           },
         });
   
