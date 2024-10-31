@@ -121,7 +121,6 @@ export default {
   
         if (!emailResponse.ok) {
           const errorMessage = emailResult.error?.message || 'Failed to send email';
-          console.error('Email sending failed:', errorMessage);
           throw new Error(errorMessage);
         }
   
@@ -141,7 +140,6 @@ export default {
         });
   
       } catch (error) {
-        console.error('Form submission error:', error);
         return new Response(JSON.stringify({
           success: false,
           message: 'An error occurred while processing your request',
