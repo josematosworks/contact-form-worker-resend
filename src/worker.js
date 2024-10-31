@@ -68,7 +68,6 @@ export default {
 
         const formData = await request.json();
         const { name, email, message } = formData;
-        const url = request.url;
   
         if (!name?.trim() || !email?.trim() || !message?.trim()) {
           return new Response('Missing required fields', { status: 400 });

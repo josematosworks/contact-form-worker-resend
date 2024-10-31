@@ -98,6 +98,48 @@ Set the following secrets in your GitHub repository to manage sensitive informat
 
 ## Usage
 
+### HTML Form Integration
+
+To integrate with an HTML form, you can use the following example:
+
+```html
+<form id="contactForm" onsubmit="handleSubmit(event)">
+  <input type="text" name="name" required>
+  <input type="email" name="email" required>
+  <textarea name="message" required></textarea>
+  <button type="submit">Send</button>
+</form>
+
+<script>
+async function handleSubmit(event) {
+  event.preventDefault();
+  
+  const form = event.target;
+  const formData = new FormData(form);
+  
+  try {
+    const response = await fetch('https://your-worker-domain.workers.dev/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(Object.fromEntries(formData))
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      alert('Message sent successfully!');
+      form.reset();
+    } else {
+      alert(`Error: ${result.message}`);
+    }
+  } catch (error) {
+    alert('Failed to send message. Please try again.');
+  }
+}
+</script>
+
 ### Sending a Contact Form Submission
 
 To send a contact form submission, make a POST request to the Worker endpoint with the following JSON payload:
