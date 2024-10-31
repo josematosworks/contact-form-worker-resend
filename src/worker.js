@@ -88,7 +88,7 @@ export default {
             <div style="margin: 20px 0;">
               <p style="margin: 10px 0;"><strong>Name:</strong> ${sanitizedName}</p>
               <p style="margin: 10px 0;"><strong>Email:</strong> ${email}</p>
-              <p style="margin: 10px 0;"><strong>Submitted from:</strong> ${url}</p>
+              <p style="margin: 10px 0;"><strong>Submitted from:</strong> ${origin}</p>
             </div>
 
             <div style="margin: 20px 0;">
