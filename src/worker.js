@@ -6,6 +6,7 @@ export default {
       const RESEND_API_ENDPOINT = env.RESEND_API_ENDPOINT;
       const RESEND_API_KEY = env.RESEND_API_KEY;
       const LIMIT_PER_DAY = env.LIMIT_PER_DAY;
+      const KV_STORE = env.KV_STORE;
       const ONE_DAY_IN_SECONDS = 86400;
 
       const origin = request.headers.get('Origin');
