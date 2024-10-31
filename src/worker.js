@@ -5,6 +5,8 @@ export default {
       const EMAIL_TO = env.EMAIL_TO.split(','); 
       const RESEND_API_ENDPOINT = env.RESEND_API_ENDPOINT;
       const RESEND_API_KEY = env.RESEND_API_KEY;
+      const LIMIT_PER_DAY = env.LIMIT_PER_DAY;
+      const ONE_DAY_IN_SECONDS = 86400;
 
       const origin = request.headers.get('Origin');
       if (origin !== ALLOWED_ORIGIN) {
@@ -34,16 +36,17 @@ export default {
       }
   
       try {
-        const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP');
-        const rateLimitKey = `ratelimit:${clientIP}`;
+        const visitorIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP');
+        const dailyRateLimitKey = `daily-requests:${visitorIP}`;
         
-        const rateLimit = await env.KV_STORE?.get(rateLimitKey) || '5';
-        const currentCount = rateLimit ? parseInt(rateLimit) : 0;
+        const storedRequestCount = await env.KV_STORE?.get(dailyRateLimitKey) || '0';
+        const dailyRequestCount = parseInt(storedRequestCount);
         
-        if (currentCount >= LIMIT_PER_DAY) {
+        const hasExceededDailyLimit = dailyRequestCount >= LIMIT_PER_DAY;
+        if (hasExceededDailyLimit) {
           return new Response(JSON.stringify({
             success: false,
-            message: 'Rate limit exceeded. Please try again later.'
+            message: 'Daily request limit exceeded. Please try again tomorrow.'
           }), {
             status: 429,
             headers: {
@@ -56,8 +59,10 @@ export default {
           });
         }
         
-        await env.KV_STORE.put(rateLimitKey, (currentCount + 1).toString(), {
-          expirationTtl: 86400
+        const newRequestCount = dailyRequestCount + 1;
+        
+        await env.KV_STORE.put(dailyRateLimitKey, newRequestCount.toString(), {
+          expirationTtl: ONE_DAY_IN_SECONDS
         });
 
         const formData = await request.json();
@@ -128,8 +133,8 @@ export default {
             'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
             'Access-Control-Allow-Credentials': 'true',
             'X-RateLimit-Limit': `${LIMIT_PER_DAY}`,
-            'X-RateLimit-Remaining': (LIMIT_PER_DAY - (currentCount + 1)).toString(),
-            'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + 86400,
+            'X-RateLimit-Remaining': (LIMIT_PER_DAY - newRequestCount).toString(),
+            'X-RateLimit-Reset': Math.floor(Date.now() / 1000) + ONE_DAY_IN_SECONDS,
             'Vary': 'Origin',
           },
         });
