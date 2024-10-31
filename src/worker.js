@@ -37,7 +37,7 @@ export default {
         const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP');
         const rateLimitKey = `ratelimit:${clientIP}`;
         
-        const rateLimit = await env.KV_STORE.get(rateLimitKey);
+        const rateLimit = await env.KV_STORE?.get(rateLimitKey) || '5';
         const currentCount = rateLimit ? parseInt(rateLimit) : 0;
         
         if (currentCount >= LIMIT_PER_DAY) {
@@ -138,7 +138,8 @@ export default {
         console.error('Form submission error:', error);
         return new Response(JSON.stringify({
           success: false,
-          message: 'An error occurred while processing your request'
+          message: 'An error occurred while processing your request',
+          error: error.message
         }), {
           status: 500,
           headers: {
