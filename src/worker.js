@@ -39,7 +39,7 @@ export default {
         const visitorIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP');
         const dailyRateLimitKey = `daily-requests:${visitorIP}`;
         
-        const storedRequestCount = await env.KV_STORE?.get(dailyRateLimitKey) || '0';
+        const storedRequestCount = await KV_STORE?.get(dailyRateLimitKey) || '0';
         const dailyRequestCount = parseInt(storedRequestCount);
         
         const hasExceededDailyLimit = dailyRequestCount >= LIMIT_PER_DAY;
@@ -61,7 +61,7 @@ export default {
         
         const newRequestCount = dailyRequestCount + 1;
         
-        await env.KV_STORE.put(dailyRateLimitKey, newRequestCount.toString(), {
+        await KV_STORE.put(dailyRateLimitKey, newRequestCount.toString(), {
           expirationTtl: ONE_DAY_IN_SECONDS
         });
 
