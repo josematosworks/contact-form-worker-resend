@@ -13,6 +13,7 @@ LIMIT_PER_DAY = 5
 enabled = true
 head_sampling_rate = 1
 
-kv_namespaces = [
-  { binding = "KV_STORE", id = "e7b2796cab684a898b4f54235645e74d", preview_id = "e7b2796cab684a898b4f54235645e74d" }
-]
+[[kv_namespaces]]
+binding = "KV_STORE"
+id = "d734ed9914ca45bda855657fbee4e8ec"
+preview_id = "d734ed9914ca45bda855657fbee4e8ec"
